@@ -1,0 +1,21 @@
+{
+  "name": "watercolor-growth",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@types/node": "^25.6.0",
+    "chokidar": "^5.0.0",
+    "cors": "^2.8.6",
+    "create-vite": "^9.0.4",
+    "express": "^5.2.1",
+    "g": "^2.0.1",
+    "jimp": "^1.6.1",
+    "osc": "^2.4.5",
+    "pixelmatch": "^7.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2",
+    "yarn": "^1.22.22"
+  }
+}
