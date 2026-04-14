@@ -1,16 +1,18 @@
-// App.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import SimulationPanel from "./SimulationPanel";
+import DiffPanel from "./DiffPanel";
+import { UI_COLORS } from "./theme";
+import "./App.css";
 
 const SERVER_URL = "http://localhost:3001";
 const FPS = 2; // Frames per second for the playback loop
-const REFRESH_METADATA_MS = 5000; // How often to check for new hardware frames
+const REFRESH_METADATA_MS = 5000;
 
-export default function InstallationView() {
+export default function App() {
   const [totalFrames, setTotalFrames] = useState<number>(0);
   const [currentFrame, setCurrentFrame] = useState<number>(0);
+  const simCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // 1. Poll the Node server for new frames
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
@@ -27,7 +29,6 @@ export default function InstallationView() {
     return () => clearInterval(interval);
   }, []);
 
-  // 2. Handle the playback loop
   useEffect(() => {
     if (totalFrames === 0) return;
 
@@ -38,102 +39,58 @@ export default function InstallationView() {
     return () => clearInterval(loop);
   }, [totalFrames]);
 
-  // This index loops rapidly (e.g., 000, 001, 002...) for the timelapse
   const loopingIndex = currentFrame.toString().padStart(3, '0');
-  
-  // This index stays completely still until the total frame count increases
-  // (e.g., it stays on 007 until the camera takes photo 008)
   const latestIndex = Math.max(0, totalFrames - 1).toString().padStart(3, '0');
+  
+  const latestImageSrc = totalFrames > 0 ? `${SERVER_URL}/frames/obs_${latestIndex}.png` : "";
+  const loopingImageSrc = totalFrames > 0 ? `${SERVER_URL}/frames/obs_${loopingIndex}.png` : "";
 
   return (
-    <div style={styles.container}>
+    <div 
+      className="app-container"
+      style={{
+        '--bg-color': UI_COLORS.background,
+        '--panel-bg': UI_COLORS.panelBg,
+        '--border-color': UI_COLORS.borderColor,
+        '--accent-color': UI_COLORS.accentColor,
+        '--text-color': UI_COLORS.textColor,
+        '--indicator-color': UI_COLORS.indicatorColor,
+      } as React.CSSProperties}
+    >
+      <header className="app-header">
+        <h1>UNPREDICTABLE GROWTH</h1>
+        <div className="status">
+          <span className="indicator active"></span>
+          LIVE METRICS: {totalFrames} FRAMES GATHERED
+        </div>
+      </header>
+
       {totalFrames === 0 ? (
-        <div style={styles.loading}>Awaiting initial biological data...</div>
+        <div className="loading">AWAITING BIOLOGICAL SEED...</div>
       ) : (
-        <>
-          {/* LEFT: The historical timelapse loop */}
-          <Panel 
-            title="Observation History" 
-            src={`${SERVER_URL}/frames/obs_${loopingIndex}.png`} 
-          />
+        <div className="panels-grid">
+          <div className="panel">
+            <h2 className="panel-title">OBSERVATION HISTORY</h2>
+            <div className="panel-content">
+              <img src={loopingImageSrc} alt="Observation" className="panel-image" />
+            </div>
+          </div>
           
-          {/* MIDDLE: The live predictive simulation, anchored only to the PRESENT state */}
-          <div style={styles.panel}>
-            <h2 style={styles.title}>Predictive Growth</h2>
-            <SimulationPanel 
-              seedImageSrc={`${SERVER_URL}/frames/obs_${latestIndex}.png`} 
-            />
+          <div className="panel">
+            <h2 className="panel-title">PREDICTIVE SIMULATION</h2>
+            <div className="panel-content" style={{ position: 'relative' }}>
+              <SimulationPanel latestImageSrc={latestImageSrc} canvasRef={simCanvasRef} />
+            </div>
           </div>
 
-          {/* RIGHT: You can decide if Divergence should loop with history, 
-              or stay fixed on the latest frame. Here it is fixed on the latest. */}
-          <Panel 
-             title="Latest Divergence" 
-             src={`${SERVER_URL}/frames/delta_${latestIndex}.png`} 
-          />
-        </>
+          <div className="panel">
+            <h2 className="panel-title">DIVERGENCE (REAL VS SIM)</h2>
+            <div className="panel-content">
+              <DiffPanel latestImageSrc={latestImageSrc} simCanvasRef={simCanvasRef} />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 }
-
-// Sub-component for individual displays
-function Panel({ title, src }: { title: string; src: string }) {
-  return (
-    <div style={styles.panel}>
-      <h2 style={styles.title}>{title}</h2>
-      <img
-        src={src}
-        alt={title}
-        style={styles.image}
-        onError={(e) => {
-          e.currentTarget.style.display = "none";
-        }}
-      />
-    </div>
-  );
-}
-
-// Inline styles for zero-dependency implementation
-const styles = {
-  container: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "2px",
-    backgroundColor: "#111",
-    height: "100vh",
-    width: "100vw",
-    overflow: "hidden",
-    color: "#eee",
-    fontFamily: "monospace",
-  },
-  panel: {
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#000",
-    padding: "20px",
-  },
-  title: {
-    fontSize: "1.2rem",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.1em",
-    marginBottom: "20px",
-    opacity: 0.7,
-  },
-  image: {
-    width: "100%",
-    maxWidth: "600px",
-    aspectRatio: "1/1",
-    objectFit: "contain" as const,
-    imageRendering: "pixelated" as const, // Preserves sharpness of the simulation grid
-  },
-  loading: {
-    gridColumn: "1 / -1",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "2rem",
-  },
-};

@@ -44,9 +44,22 @@ async function processNewFrame(filePath: string) {
     // 1. Load the observed hardware image
     const obsImage = await Jimp.read(filePath);
 
-    // Optional: If the camera feed is noisy or the blob is hard to see, 
-    // apply basic contrast or thresholding here so the React canvas reads it accurately.
-    // obsImage.contrast(0.2); 
+    // Threshold to keep only the yellow blob (get rid of petri dish)
+    obsImage.scan(0, 0, obsImage.bitmap.width, obsImage.bitmap.height, (x, y, idx) => {
+      const r = obsImage.bitmap.data[idx + 0];
+      const g = obsImage.bitmap.data[idx + 1];
+      const b = obsImage.bitmap.data[idx + 2];
+      
+      // Basic yellow/blob detection (high Red & Green, lower Blue)
+      const isYellow = r > 100 && g > 100 && b < 150 && (r - b) > 30 && (g - b) > 30;
+      
+      if (!isYellow) {
+        // Turn non-blob pixels black
+        obsImage.bitmap.data[idx + 0] = 0;
+        obsImage.bitmap.data[idx + 1] = 0;
+        obsImage.bitmap.data[idx + 2] = 0;
+      }
+    });
 
     // 2. Save sequentially padded filename (e.g., 000, 001, 002)
     const paddedIndex = frameIndex.toString().padStart(3, "0");

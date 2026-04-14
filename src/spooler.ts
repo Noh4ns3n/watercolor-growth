@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const MOCK_DIR = path.resolve(__dirname, "../mock_images");
 const HOT_FOLDER = path.resolve(__dirname, "../hot_folder");
 const OUTPUT_FILE = path.join(HOT_FOLDER, "latest.png");
-const INTERVAL_MS = 5000; // Simulate an image every 60 seconds
+const INTERVAL_MS = 10000; // Simulate an image every 60 seconds
 
 async function startSpooler() {
   try {
