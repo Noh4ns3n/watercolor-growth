@@ -5,33 +5,33 @@
 
 export const UI_COLORS = {
   // Main background of the page
-  background: '#050508',
-  
+  background: "#050508",
+
   // Background of the 3 main panels
-  panelBg: 'rgba(10, 12, 16, 0.8)',
-  
+  panelBg: "rgba(10, 12, 16, 0.8)",
+
   // Borders of the panels and UI elements
-  borderColor: '#1a2a3a',
-  
+  borderColor: "#1a2a3a",
+
   // Text color and panel titles
-  textColor: '#cceeff',
+  textColor: "#cceeff",
 
   // Accent color used for titles, corners, and glows
-  accentColor: '#00f0ff',
-  
+  accentColor: "#00f0ff",
+
   // Indicator color (the pulsing recording light & clear button)
-  indicatorColor: '#ff3366',
+  indicatorColor: "#ff3366",
 };
 
 export const SIMULATION_COLORS = {
   // Color of the actively "Searching" tips (drawn over the blob)
-  agents: 'rgba(255, 255, 150, 0.9)',
-  
+  agents: "rgba(100, 10, 150, 0.2)",
+
   // Color of the Oat Flakes (Attractants) when you click the canvas
-  food: '#FFFFEE',
-  
+  food: "#FF00EE",
+
   // The subtle glowing boundary of the petri dish
-  dishBoundary: 'rgba(0, 240, 255, 0.15)',
+  dishBoundary: "rgba(0, 240, 255, 0.15)",
 };
 
 // ==========================================
@@ -40,38 +40,54 @@ export const SIMULATION_COLORS = {
 // The physical blob and the historical trails are rendered using a dynamic colormap.
 // 'intensity' goes from 0 (empty space) to 255 (thickest veins/growth).
 // Tweak the RGB returns below to change the look of the established Aquarelle blob!
+// Helper to parse hex strings to [r, g, b] arrays ONCE at startup
+const hexToRgb = (hex: string): [number, number, number] => {
+  const cleanHex = hex.replace("#", "");
+  const r = parseInt(cleanHex.substring(0, 2), 16);
+  const g = parseInt(cleanHex.substring(2, 4), 16);
+  const b = parseInt(cleanHex.substring(4, 6), 16);
+  return [r, g, b];
+};
 
-function getBlobColor(intensity: number): [number, number, number, number] {
+const BLOB_COLORS_HEX = {
+  ESTABLISHED: "#FF0000", // Bright Yellow
+  FADING: "#00FF00", // Darker, greener yellow
+  DISSOLVING: "#0000FF", // Dark olive green
+};
+
+const PARSED_RGB = {
+  ESTABLISHED: hexToRgb(BLOB_COLORS_HEX.ESTABLISHED),
+  FADING: hexToRgb(BLOB_COLORS_HEX.FADING),
+  DISSOLVING: hexToRgb(BLOB_COLORS_HEX.DISSOLVING),
+};
+
+export function getBlobColor(
+  intensity: number,
+): [number, number, number, number] {
   if (intensity < 5) {
     // Transparent background for empty dish
-    return [0, 0, 0, 0]; 
+    return [0, 0, 0, 0];
   }
-  
-  let r, g, b;
-  
+
+  let rgb: [number, number, number];
+
   if (intensity > 150) {
-    // CORE ESTABLISHED VEINS (Highest density) - Bright Yellow
-    r = 255;
-    g = 240;
-    b = 50;
+    rgb = PARSED_RGB.ESTABLISHED;
   } else if (intensity > 50) {
-    // FADING EDGES (Medium density) - Darker, greener yellow
-    r = 200;
-    g = 220;
-    b = 40;
+    rgb = PARSED_RGB.FADING;
   } else {
-    // OLDEST GROWTH / DISSOLVING (Lowest density) - Dark olive green
-    r = 120;
-    g = 150;
-    b = 30;
+    rgb = PARSED_RGB.DISSOLVING;
   }
-  
+
   // Alpha channel (transparency) - creates a sharp drop-off at the very edge
   const alpha = intensity > 20 ? 255 : intensity * 12;
-  
-  return [r, g, b, alpha];
+
+  // Return the combined array for the Canvas ImageData buffer
+  return [rgb[0], rgb[1], rgb[2], alpha];
 }
 
 // Pre-compute the colormap for massive performance gains in the render loop.
 // Do not edit this line.
-export const BLOB_COLORMAP = Array.from({ length: 256 }, (_, i) => getBlobColor(i));
+export const BLOB_COLORMAP = Array.from({ length: 256 }, (_, i) =>
+  getBlobColor(i),
+);
