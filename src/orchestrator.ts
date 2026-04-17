@@ -45,21 +45,28 @@ async function processNewFrame(filePath: string) {
     const obsImage = await Jimp.read(filePath);
 
     // Threshold to keep only the yellow blob (get rid of petri dish)
-    obsImage.scan(0, 0, obsImage.bitmap.width, obsImage.bitmap.height, (x, y, idx) => {
-      const r = obsImage.bitmap.data[idx + 0];
-      const g = obsImage.bitmap.data[idx + 1];
-      const b = obsImage.bitmap.data[idx + 2];
-      
-      // Basic yellow/blob detection (high Red & Green, lower Blue)
-      const isYellow = r > 100 && g > 100 && b < 150 && (r - b) > 30 && (g - b) > 30;
-      
-      if (!isYellow) {
-        // Turn non-blob pixels black
-        obsImage.bitmap.data[idx + 0] = 0;
-        obsImage.bitmap.data[idx + 1] = 0;
-        obsImage.bitmap.data[idx + 2] = 0;
-      }
-    });
+    obsImage.scan(
+      0,
+      0,
+      obsImage.bitmap.width,
+      obsImage.bitmap.height,
+      (x, y, idx) => {
+        const r = obsImage.bitmap.data[idx + 0];
+        const g = obsImage.bitmap.data[idx + 1];
+        const b = obsImage.bitmap.data[idx + 2];
+
+        // Basic yellow/blob detection (high Red & Green, lower Blue)
+        const isYellow =
+          r > 100 && g > 100 && b < 150 && r - b > 30 && g - b > 30;
+
+        if (!isYellow) {
+          // Turn non-blob pixels black
+          obsImage.bitmap.data[idx + 0] = 0;
+          obsImage.bitmap.data[idx + 1] = 0;
+          obsImage.bitmap.data[idx + 2] = 0;
+        }
+      },
+    );
 
     // 2. Save sequentially padded filename (e.g., 000, 001, 002)
     const paddedIndex = frameIndex.toString().padStart(3, "0");
@@ -74,14 +81,11 @@ async function processNewFrame(filePath: string) {
     // We send a basic frame-update trigger to TouchDesigner/Ableton instead.
     udpPort.send({
       address: "/blob/frame",
-      args: [
-        { type: "i", value: frameIndex }
-      ],
+      args: [{ type: "i", value: frameIndex }],
     });
 
     // 4. Increment the global frame counter
     frameIndex++;
-
   } catch (error) {
     console.error("[Orchestrator] Processing error:", error);
   }
