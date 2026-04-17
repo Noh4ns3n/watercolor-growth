@@ -86,7 +86,7 @@ export default function App() {
           <div className="panel">
             <h2 className="panel-title">DIVERGENCE (REAL VS SIM)</h2>
             <div className="panel-content">
-              <DiffPanel latestImageSrc={latestImageSrc} simCanvasRef={simCanvasRef} />
+              <DiffPanel latestImageSrc={latestImageSrc} simCanvasRef={simCanvasRef} totalFrames={totalFrames} />
             </div>
           </div>
         </div>

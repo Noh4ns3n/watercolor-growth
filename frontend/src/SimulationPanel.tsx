@@ -37,7 +37,7 @@ export default function SimulationPanel({ latestImageSrc, canvasRef }: Props) {
   const paramsRef = useRef<SimParams>({
     sensorDistance: 12,
     sensorAngle: 40,
-    stepSize: 0.1,
+    stepSize: 3,
     decay: 0.1,
   });
 

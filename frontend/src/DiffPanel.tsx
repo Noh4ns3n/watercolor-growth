@@ -4,9 +4,14 @@ import { AudioEngine } from "./AudioEngine";
 interface Props {
   latestImageSrc: string;
   simCanvasRef: React.RefObject<HTMLCanvasElement | null>;
+  totalFrames: number;
 }
 
-export default function DiffPanel({ latestImageSrc, simCanvasRef }: Props) {
+export default function DiffPanel({
+  latestImageSrc,
+  simCanvasRef,
+  totalFrames: totalFramesTimelapse,
+}: Props) {
   const diffCanvasRef = useRef<HTMLCanvasElement>(null);
   const [audioStarted, setAudioStarted] = useState(false);
 
@@ -54,7 +59,7 @@ export default function DiffPanel({ latestImageSrc, simCanvasRef }: Props) {
 
         // --- 2. Metric Extraction (Run every 10 frames to save CPU) ---
         if (frameCounter % 10 === 0 && audioStarted) {
-          // Draw reality to offscreen
+          // A. Get Reality Pixels
           oCtx.globalCompositeOperation = "source-over";
           oCtx.drawImage(img, 0, 0, analysisSize, analysisSize);
           const realityData = oCtx.getImageData(
@@ -64,7 +69,9 @@ export default function DiffPanel({ latestImageSrc, simCanvasRef }: Props) {
             analysisSize,
           ).data;
 
-          // Draw sim to offscreen
+          // B. Get Simulation Pixels
+          // Clear offscreen canvas and draw sim
+          oCtx.clearRect(0, 0, analysisSize, analysisSize);
           oCtx.drawImage(simCanvas, 0, 0, analysisSize, analysisSize);
           const simData = oCtx.getImageData(
             0,
@@ -73,25 +80,49 @@ export default function DiffPanel({ latestImageSrc, simCanvasRef }: Props) {
             analysisSize,
           ).data;
 
+          // C. Calculate Metrics
           let diffCount = 0;
-          const totalPixels = analysisSize * analysisSize;
+          let maxRadiusFound = 0;
+          const center = analysisSize / 2;
+          const maxPossibleRadius = analysisSize / 2;
 
-          for (let i = 0; i < realityData.length; i += 4) {
-            // Compare luminance. If difference exceeds threshold, it's a divergence.
-            const rLuma = realityData[i]; // Simplification: using Red channel as proxy
-            const sLuma = simData[i];
-            if (Math.abs(rLuma - sLuma) > 40) {
-              diffCount++;
+          for (let y = 0; y < analysisSize; y++) {
+            for (let x = 0; x < analysisSize; x++) {
+              const i = (y * analysisSize + x) * 4;
+
+              const rLuma = realityData[i];
+              const sLuma = simData[i];
+
+              // 1. Divergence Check
+              if (Math.abs(rLuma - sLuma) > 40) {
+                diffCount++;
+              }
+
+              // 2. Radial Reach Check
+              // If the simulation OR reality has a blob here (pixel is bright)
+              if (rLuma > 50 || sLuma > 50) {
+                const dx = x - center;
+                const dy = y - center;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > maxRadiusFound) {
+                  maxRadiusFound = dist;
+                }
+              }
             }
           }
 
-          // Calculate a normalized metric (0.0 to 1.0)
-          // We cap it at 30% of pixels differing to represent "Maximum Divergence"
-          // so the audio reaches peak richness earlier.
+          // D. Normalize metrics to 0.0 -> 1.0 range
+          const totalPixels = analysisSize * analysisSize;
           const rawDivergence = diffCount / totalPixels;
-          const normalizedDelta = Math.min(1.0, rawDivergence / 0.3);
 
-          AudioEngine.getInstance().updateDivergence(normalizedDelta);
+          const metrics = {
+            divergence: Math.min(1.0, rawDivergence / 0.3),
+            frameCount: frameCounter,
+            radialReach: Math.min(1.0, maxRadiusFound / maxPossibleRadius),
+            totalFramesTimelapse,
+          };
+
+          AudioEngine.getInstance().updateState(metrics);
         }
         frameCounter++;
       }
