@@ -1,10 +1,11 @@
 import chokidar from "chokidar";
-import { Jimp, type JimpInstance } from "jimp";
+import { Jimp } from "jimp";
 import osc from "osc";
 import path from "path";
 import express from "express";
 import cors from "cors";
 import { fileURLToPath } from "url";
+import { recoverFrameIndex, isolateYellowBlob } from "./utils.js";
 
 // Reconstruct __dirname in ES Module scope
 const __filename = fileURLToPath(import.meta.url);
@@ -12,7 +13,6 @@ const __dirname = path.dirname(__filename);
 
 const HOT_FOLDER = path.resolve(__dirname, "../hot_folder");
 const WATCH_FILE = path.join(HOT_FOLDER, "latest.png");
-let frameIndex = 0;
 
 // --- Static File Server ---
 const app = express();
@@ -20,7 +20,7 @@ app.use(cors());
 app.use("/frames", express.static(HOT_FOLDER));
 
 // Endpoint so React knows how many frames currently exist
-app.get("/metadata", (req, res) => {
+app.get("/metadata", (req: any, res: any) => {
   res.json({ totalFrames: frameIndex });
 });
 
@@ -37,36 +37,17 @@ const udpPort = new osc.UDPPort({
 udpPort.open();
 udpPort.on("ready", () => console.log("[OSC] Port open and ready."));
 
+let frameIndex = recoverFrameIndex(HOT_FOLDER);
+console.log(`[Orchestrator] Starting at frame index: ${frameIndex}`);
+
 // --- 3. Observation & Delta Pipeline ---
 async function processNewFrame(filePath: string) {
   console.log(`[Orchestrator] Processing new physical frame: ${filePath}`);
   try {
     // 1. Load the observed hardware image
-    const obsImage = await Jimp.read(filePath);
+    let obsImage = await Jimp.read(filePath);
 
-    // Threshold to keep only the yellow blob (get rid of petri dish)
-    obsImage.scan(
-      0,
-      0,
-      obsImage.bitmap.width,
-      obsImage.bitmap.height,
-      (x, y, idx) => {
-        const r = obsImage.bitmap.data[idx + 0];
-        const g = obsImage.bitmap.data[idx + 1];
-        const b = obsImage.bitmap.data[idx + 2];
-
-        // Basic yellow/blob detection (high Red & Green, lower Blue)
-        const isYellow =
-          r > 100 && g > 100 && b < 150 && r - b > 30 && g - b > 30;
-
-        if (!isYellow) {
-          // Turn non-blob pixels black
-          obsImage.bitmap.data[idx + 0] = 0;
-          obsImage.bitmap.data[idx + 1] = 0;
-          obsImage.bitmap.data[idx + 2] = 0;
-        }
-      },
-    );
+    obsImage = isolateYellowBlob(obsImage);
 
     // 2. Save sequentially padded filename (e.g., 000, 001, 002)
     const paddedIndex = frameIndex.toString().padStart(3, "0");
