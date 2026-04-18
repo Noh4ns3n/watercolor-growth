@@ -1,5 +1,30 @@
 import fs from "fs";
 
+// --- Terminal Colors & Formatting ---
+const c = {
+  cyan: "\x1b[36m",
+  magenta: "\x1b[35m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  red: "\x1b[31m",
+  dim: "\x1b[2m",
+  reset: "\x1b[0m"
+};
+
+function getLocalTime() {
+  return new Date().toLocaleTimeString('fr-FR');
+}
+
+/**
+ * Custom logger
+ */
+export const log = {
+  info: (msg: string) => console.log(`${c.dim}[${getLocalTime()}]${c.reset} ${c.magenta}[Orchestrator]${c.reset} ${msg}`),
+  success: (msg: string) => console.log(`${c.dim}[${getLocalTime()}]${c.reset} ${c.magenta}[Orchestrator]${c.reset} ${c.green}${msg}${c.reset}`),
+  warn: (msg: string) => console.log(`${c.dim}[${getLocalTime()}]${c.reset} ${c.magenta}[Orchestrator]${c.reset} ${c.yellow}${msg}${c.reset}`),
+  error: (msg: string) => console.log(`${c.dim}[${getLocalTime()}]${c.reset} ${c.magenta}[Orchestrator]${c.reset} ${c.red}${msg}${c.reset}`),
+};
+
 /**
  * Scans a directory for files matching 'obs_XXX.png' and returns the next available index.
  * Creates the directory if it does not exist.

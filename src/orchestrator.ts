@@ -5,7 +5,7 @@ import path from "path";
 import express from "express";
 import cors from "cors";
 import { fileURLToPath } from "url";
-import { isolateYellowBlob, recoverFrameIndex } from "./utils.js";
+import { isolateYellowBlob, log, recoverFrameIndex } from "./utils.js";
 
 // Reconstruct __dirname in ES Module scope
 const __filename = fileURLToPath(import.meta.url);
@@ -38,11 +38,14 @@ udpPort.open();
 udpPort.on("ready", () => console.log("[OSC] Port open and ready."));
 
 let frameIndex = recoverFrameIndex(HOT_FOLDER);
-console.log(`[Orchestrator] Starting at frame index: ${frameIndex}`);
+
+log.info(`[Orchestrator] Starting at frame index: ${frameIndex}`);
 
 // --- 3. Observation & Delta Pipeline ---
 async function processNewFrame(filePath: string) {
-  console.log(`[${new Date().toISOString()}] [Orchestrator] Processing new physical frame: ${filePath}`);
+  log.info(
+    `[${new Date().toISOString()}] [Orchestrator] Processing new physical frame: ${filePath}`,
+  );
   try {
     // 1. Load the observed hardware image
     let obsImage = await Jimp.read(filePath);
@@ -55,7 +58,7 @@ async function processNewFrame(filePath: string) {
 
     await obsImage.write(outputPath as `${string}.${string}`);
 
-    console.log(`[Orchestrator] Saved: obs_${paddedIndex}.png`);
+    log.success(`[Orchestrator] Saved: obs_${paddedIndex}.png`);
 
     // 3. Send a basic OSC trigger
     // Note: Because Node no longer calculates divergence, it cannot send those metrics.
@@ -84,4 +87,4 @@ const watcher = chokidar.watch(WATCH_FILE, {
 watcher.on("add", processNewFrame);
 watcher.on("change", processNewFrame);
 
-console.log(`[Orchestrator] Watching ${WATCH_FILE}...`);
+log.info(`[Orchestrator] Watching ${WATCH_FILE}...`);
