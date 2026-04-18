@@ -5,7 +5,7 @@ import path from "path";
 import express from "express";
 import cors from "cors";
 import { fileURLToPath } from "url";
-import { recoverFrameIndex, isolateYellowBlob } from "./utils.js";
+import { isolateYellowBlob, recoverFrameIndex } from "./utils.js";
 
 // Reconstruct __dirname in ES Module scope
 const __filename = fileURLToPath(import.meta.url);
@@ -42,7 +42,7 @@ console.log(`[Orchestrator] Starting at frame index: ${frameIndex}`);
 
 // --- 3. Observation & Delta Pipeline ---
 async function processNewFrame(filePath: string) {
-  console.log(`[Orchestrator] Processing new physical frame: ${filePath}`);
+  console.log(`[${new Date().toISOString()}] [Orchestrator] Processing new physical frame: ${filePath}`);
   try {
     // 1. Load the observed hardware image
     let obsImage = await Jimp.read(filePath);

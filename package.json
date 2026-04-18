@@ -18,5 +18,12 @@
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2",
     "yarn": "^1.22.22"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  },
+  "scripts": {
+    "orc": "tsx src/orchestrator.ts",
+    "catchup": "tsx src/catchup.ts"
   }
 }
