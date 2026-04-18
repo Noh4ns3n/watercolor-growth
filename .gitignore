@@ -2,3 +2,5 @@ node_modules
 hot_folder
 backlog
 .DS_Store
+settings.json
+readme.md
