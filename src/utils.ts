@@ -8,21 +8,33 @@ const c = {
   yellow: "\x1b[33m",
   red: "\x1b[31m",
   dim: "\x1b[2m",
-  reset: "\x1b[0m"
+  reset: "\x1b[0m",
 };
 
 function getLocalTime() {
-  return new Date().toLocaleTimeString('fr-FR');
+  return new Date().toLocaleTimeString("fr-FR");
 }
 
 /**
  * Custom logger
  */
 export const log = {
-  info: (msg: string) => console.log(`${c.dim}[${getLocalTime()}]${c.reset} ${c.magenta}[Orchestrator]${c.reset} ${msg}`),
-  success: (msg: string) => console.log(`${c.dim}[${getLocalTime()}]${c.reset} ${c.magenta}[Orchestrator]${c.reset} ${c.green}${msg}${c.reset}`),
-  warn: (msg: string) => console.log(`${c.dim}[${getLocalTime()}]${c.reset} ${c.magenta}[Orchestrator]${c.reset} ${c.yellow}${msg}${c.reset}`),
-  error: (msg: string) => console.log(`${c.dim}[${getLocalTime()}]${c.reset} ${c.magenta}[Orchestrator]${c.reset} ${c.red}${msg}${c.reset}`),
+  info: (msg: string) =>
+    console.log(
+      `${c.dim}[${getLocalTime()}]${c.reset} ${c.magenta}[Orchestrator]${c.reset} ${msg}`,
+    ),
+  success: (msg: string) =>
+    console.log(
+      `${c.dim}[${getLocalTime()}]${c.reset} ${c.magenta}[Orchestrator]${c.reset} ${c.green}${msg}${c.reset}`,
+    ),
+  warn: (msg: string) =>
+    console.log(
+      `${c.dim}[${getLocalTime()}]${c.reset} ${c.magenta}[Orchestrator]${c.reset} ${c.yellow}${msg}${c.reset}`,
+    ),
+  error: (msg: string) =>
+    console.log(
+      `${c.dim}[${getLocalTime()}]${c.reset} ${c.magenta}[Orchestrator]${c.reset} ${c.red}${msg}${c.reset}`,
+    ),
 };
 
 /**
@@ -56,6 +68,10 @@ export function recoverFrameIndex(targetFolder: string): number {
  * setting all non-conforming pixels to black.
  */
 export function isolateYellowBlob(image: any): any {
+  const MIN_RG = 50; // Lower = more permissive to darks
+  const MAX_B = 200; // Higher = more permissive to whites/grays
+  const COLOR_GAP = 10; // Lower = more permissive to low saturation
+
   image.scan(
     0,
     0,
@@ -68,7 +84,11 @@ export function isolateYellowBlob(image: any): any {
 
       // Yellow/blob detection (high Red & Green, lower Blue)
       const isYellow =
-        r > 100 && g > 100 && b < 150 && r - b > 30 && g - b > 30;
+        r > MIN_RG &&
+        g > MIN_RG &&
+        b < MAX_B &&
+        r - b > COLOR_GAP &&
+        g - b > COLOR_GAP;
 
       if (!isYellow) {
         image.bitmap.data[idx + 0] = 0;

@@ -3,8 +3,9 @@ import SimulationPanel from "./SimulationPanel";
 import DiffPanel from "./DiffPanel";
 import { UI_COLORS } from "./theme";
 import "./App.css";
+import AudioSandbox from "./AudioSandbox";
 
-const SERVER_URL = "http://localhost:3001";
+const SERVER_URL = "http://192.168.1.34:3001";
 const FPS = 2; // Frames per second for the playback loop
 const REFRESH_METADATA_MS = 5000;
 
@@ -39,23 +40,29 @@ export default function App() {
     return () => clearInterval(loop);
   }, [totalFrames]);
 
-  const loopingIndex = currentFrame.toString().padStart(3, '0');
-  const latestIndex = Math.max(0, totalFrames - 1).toString().padStart(3, '0');
-  
-  const latestImageSrc = totalFrames > 0 ? `${SERVER_URL}/frames/obs_${latestIndex}.png` : "";
-  const loopingImageSrc = totalFrames > 0 ? `${SERVER_URL}/frames/obs_${loopingIndex}.png` : "";
+  const loopingIndex = currentFrame.toString().padStart(3, "0");
+  const latestIndex = Math.max(0, totalFrames - 1)
+    .toString()
+    .padStart(3, "0");
+
+  const latestImageSrc =
+    totalFrames > 0 ? `${SERVER_URL}/frames/obs_${latestIndex}.png` : "";
+  const loopingImageSrc =
+    totalFrames > 0 ? `${SERVER_URL}/frames/obs_${loopingIndex}.png` : "";
 
   return (
-    <div 
+    <div
       className="app-container"
-      style={{
-        '--bg-color': UI_COLORS.background,
-        '--panel-bg': UI_COLORS.panelBg,
-        '--border-color': UI_COLORS.borderColor,
-        '--accent-color': UI_COLORS.accentColor,
-        '--text-color': UI_COLORS.textColor,
-        '--indicator-color': UI_COLORS.indicatorColor,
-      } as React.CSSProperties}
+      style={
+        {
+          "--bg-color": UI_COLORS.background,
+          "--panel-bg": UI_COLORS.panelBg,
+          "--border-color": UI_COLORS.borderColor,
+          "--accent-color": UI_COLORS.accentColor,
+          "--text-color": UI_COLORS.textColor,
+          "--indicator-color": UI_COLORS.indicatorColor,
+        } as React.CSSProperties
+      }
     >
       <header className="app-header">
         <h1>UNPREDICTABLE GROWTH</h1>
@@ -72,23 +79,36 @@ export default function App() {
           <div className="panel">
             <h2 className="panel-title">OBSERVATION HISTORY</h2>
             <div className="panel-content">
-              <img src={loopingImageSrc} alt="Observation" className="panel-image" />
+              <img
+                src={loopingImageSrc}
+                alt="Observation"
+                className="panel-image"
+                style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              />
             </div>
           </div>
-          
+
           <div className="panel">
             <h2 className="panel-title">PREDICTIVE SIMULATION</h2>
-            <div className="panel-content" style={{ position: 'relative' }}>
-              <SimulationPanel latestImageSrc={latestImageSrc} canvasRef={simCanvasRef} />
+            <div className="panel-content" style={{ position: "relative" }}>
+              <SimulationPanel
+                latestImageSrc={latestImageSrc}
+                canvasRef={simCanvasRef}
+              />
             </div>
           </div>
 
           <div className="panel">
             <h2 className="panel-title">DIVERGENCE (REAL VS SIM)</h2>
             <div className="panel-content">
-              <DiffPanel latestImageSrc={latestImageSrc} simCanvasRef={simCanvasRef} totalFrames={totalFrames} />
+              <DiffPanel
+                latestImageSrc={latestImageSrc}
+                simCanvasRef={simCanvasRef}
+                totalFrames={totalFrames}
+              />
             </div>
           </div>
+          <AudioSandbox />
         </div>
       )}
     </div>

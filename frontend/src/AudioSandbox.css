@@ -1,0 +1,62 @@
+.audio-sandbox {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px;
+  z-index: 1000;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  min-width: 150px;
+}
+
+.sandbox-toggle {
+  width: 100%;
+  background: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--accent-color);
+  padding: 8px;
+  cursor: pointer;
+  font-family: monospace;
+  border-radius: 4px;
+}
+
+.sandbox-toggle:hover {
+  background: var(--accent-color);
+  color: #000;
+}
+
+.sandbox-content {
+  margin-top: 15px;
+}
+
+.sandbox-title {
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+  color: var(--indicator-color);
+  text-align: center;
+}
+
+.button-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trigger-btn {
+  background: #2a2a2a;
+  color: #fff;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+
+.trigger-btn:active {
+  background: var(--accent-color);
+  color: #000;
+}

@@ -24,6 +24,7 @@
   },
   "scripts": {
     "orc": "tsx src/orchestrator.ts",
-    "catchup": "tsx src/catchup.ts"
+    "catchup": "tsx src/catchup.ts",
+    "tl": "tsx src/timelapse.ts"
   }
 }
