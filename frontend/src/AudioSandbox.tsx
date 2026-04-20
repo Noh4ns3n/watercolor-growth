@@ -13,15 +13,15 @@ export default function AudioSandbox() {
     },
     {
       name: "Heartbeat Drum",
-      action: () => AudioEngine.getInstance().triggerDrum(),
+      action: () => AudioEngine.getInstance().triggerDrum({}),
     },
     {
       name: "Glitch Chime",
-      action: () => AudioEngine.getInstance().triggerChime(),
+      action: () => AudioEngine.getInstance().triggerChime({}),
     },
     {
       name: "Gen Note",
-      action: () => AudioEngine.getInstance().triggerGenerativeNote(),
+      action: () => AudioEngine.getInstance().triggerGenerativeNote({}),
     },
     {
       name: "Bubbles",

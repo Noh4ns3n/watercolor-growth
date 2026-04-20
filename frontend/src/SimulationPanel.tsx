@@ -24,7 +24,7 @@ interface Props {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
 }
 
-const CANVAS_SIZE = 800;
+const CANVAS_SIZE = 1000;
 const DISH_CENTER = CANVAS_SIZE / 2;
 const DISH_RADIUS = CANVAS_SIZE / 2 - 10;
 const INJECTION_COUNT = 110000;

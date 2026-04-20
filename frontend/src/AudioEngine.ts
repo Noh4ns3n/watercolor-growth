@@ -303,7 +303,7 @@ export class AudioEngine {
 
     if (radialReach > 0.4) {
       if (divergence > 0.2 && Math.random() < divergence * 0.1) {
-        this.triggerBubbleBurst({ time });
+        this.triggerBubbleBurst(time);
       }
     }
 
